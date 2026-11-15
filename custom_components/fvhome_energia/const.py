@@ -1,6 +1,6 @@
 """Constantes da integração FV Home Energia."""
 DOMAIN = "fvhome_energia"
-VERSAO = "0.2.0"
+VERSAO = "0.2.1"
 
 URL_PADRAO = "https://app.fvhome.com.br/api/relatorio"
 
