@@ -1,0 +1,13 @@
+{
+  "domain": "fvhome_energia",
+  "name": "FV Home Energia",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": ["recorder"],
+  "after_dependencies": ["energy"],
+  "documentation": "https://fvhome.com.br",
+  "integration_type": "service",
+  "iot_class": "cloud_push",
+  "requirements": [],
+  "version": "0.2.0"
+}

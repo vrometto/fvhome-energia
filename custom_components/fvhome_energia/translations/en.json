@@ -1,0 +1,112 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "FV Home Energia",
+        "description": "Cole o token que a FV Home enviou para a sua casa. O relatório usa as fontes já cadastradas no Painel de Energia do Home Assistant e é enviado todo dia 1.",
+        "data": {
+          "token": "Token do portal",
+          "casa": "Nome da casa (opcional)",
+          "url": "Endereço do portal"
+        },
+        "data_description": {
+          "token": "Começa com fvh_. Fica guardado só neste Home Assistant.",
+          "url": "Não mude, a não ser que a FV Home peça."
+        }
+      }
+    },
+    "error": {
+      "token_invalido": "Token inválido ou revogado. Confira com a FV Home.",
+      "sem_conexao": "Não foi possível falar com o portal. Verifique a internet do Home Assistant.",
+      "sem_painel_energia": "Configure primeiro o Painel de Energia (Configurações → Painéis → Energia): pelo menos o consumo da rede."
+    },
+    "abort": {
+      "already_configured": "Este token já está configurado."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "O que entra no relatório",
+        "description": "Energia vem do Painel de Energia. Aqui você liga as seções extras.\\n\\nAmbientes de climatização: {ambientes}",
+        "menu_options": {
+          "geral": "Opções gerais (envio, tensão, bateria, temperatura externa)",
+          "ambiente_novo": "Adicionar ambiente de climatização",
+          "ambiente_remover": "Remover ambiente de climatização",
+          "salvar": "Salvar e sair"
+        }
+      },
+      "geral": {
+        "title": "Opções gerais",
+        "data": {
+          "envio_automatico": "Enviar automaticamente todo dia 1",
+          "medidor_so_consumo": "O medidor da rede mede só consumo (não registra o que vai para a rede)",
+          "tensao_nominal": "Tensão da casa (V)",
+          "tensao_fases": "Sensores de tensão de cada fase",
+          "potencia_casa": "Potência da casa (W) — para a análise de bateria",
+          "baterias_kwh": "Baterias para simular (kWh, separadas por vírgula)",
+          "temp_externa": "Temperatura externa (usada na climatização)"
+        },
+        "data_description": {
+          "tensao_fases": "Seção Qualidade da energia (faixas da ANEEL). Se o sensor não grava estatísticas, a integração cria uma cópia que grava.",
+          "medidor_so_consumo": "Ligue se o consumo da casa é o próprio valor do medidor da rede (sem descontar exportação)."
+        }
+      },
+      "ambiente_novo": {
+        "title": "Novo ambiente de climatização",
+        "description": "Um ar-condicionado dedicado a um cômodo. A potência vem da tomada ou do medidor do ar.",
+        "data": {
+          "nome": "Nome do ambiente (ex.: Sala, Quarto do casal)",
+          "potencia": "Potência do ar-condicionado (W)",
+          "temp_interna": "Temperatura do cômodo (opcional)",
+          "climate": "Entidade do ar (climate, opcional)"
+        }
+      },
+      "ambiente_remover": {
+        "title": "Remover ambientes",
+        "data": {
+          "remover": "Ambientes para remover"
+        }
+      }
+    },
+    "error": {
+      "baterias_invalidas": "Use números separados por vírgula, ex.: 5,10",
+      "ambiente_repetido": "Já existe um ambiente com esse nome."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ultimo_envio": {
+        "name": "Último envio",
+        "state": {
+          "ok": "Enviado",
+          "erro": "Falhou"
+        }
+      }
+    },
+    "button": {
+      "enviar_previa": {
+        "name": "Enviar prévia do mês atual"
+      },
+      "reenviar_mes_anterior": {
+        "name": "Reenviar mês anterior"
+      }
+    }
+  },
+  "services": {
+    "enviar_relatorio": {
+      "name": "Enviar relatório de energia",
+      "description": "Monta e envia o resumo ao portal FV Home agora.",
+      "fields": {
+        "mes": {
+          "name": "Mês (AAAA-MM)",
+          "description": "Vazio = último mês fechado (ou o mês atual, se parcial)."
+        },
+        "parcial": {
+          "name": "Parcial",
+          "description": "Envia o mês em andamento até a última hora fechada."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+enviar_relatorio:
+  fields:
+    mes:
+      example: "2026-10"
+      selector:
+        text:
+    parcial:
+      default: false
+      selector:
+        boolean:
