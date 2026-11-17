@@ -51,7 +51,7 @@
         "data_description": {
           "tensao_fases": "Seção Qualidade da energia (faixas da ANEEL). Se o sensor não grava estatísticas, a integração cria uma cópia que grava.",
           "medidor_so_consumo": "Ligue se o consumo da casa é o próprio valor do medidor da rede (sem descontar exportação).",
-          "status_online": "Permite à FV Home ver se a casa ficou sem internet ou se o Home Assistant parou. Envia só versões e a contagem de entidades indisponíveis."
+          "status_online": "Permite à FV Home ver se a casa ficou sem internet e se algum sensor usado no relatório parou de medir. Envia só versões e o nome dos sensores do relatório que estão sem leitura — nenhum valor medido."
         }
       },
       "ambiente_novo": {

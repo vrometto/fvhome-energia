@@ -15,7 +15,7 @@ from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse, Supp
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.event import async_track_time_change, async_track_time_interval
+from homeassistant.helpers.event import async_call_later, async_track_time_change, async_track_time_interval
 from homeassistant.helpers.start import async_at_started
 from homeassistant.helpers.typing import ConfigType
 
@@ -97,7 +97,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: FVConfigEntry) -> bool:
 
         @callback
         def _ao_iniciar(_hass: HomeAssistant) -> None:
-            hass.async_create_background_task(_status(), f"{DOMAIN}_status_inicial")
+            # 1 min depois de ligar: dá tempo dos sensores saírem de "desconhecido"
+            entry.async_on_unload(async_call_later(hass, 60, _status))
 
         entry.async_on_unload(async_at_started(hass, _ao_iniciar))
         entry.async_on_unload(async_track_time_interval(hass, _status, INTERVALO_STATUS, name=f"{DOMAIN}_status"))

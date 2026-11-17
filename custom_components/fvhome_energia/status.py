@@ -2,8 +2,11 @@
 
 Se o portal ficar 15 minutos sem receber o aviso, a casa aparece como offline
 no painel da FV Home (internet caiu, Home Assistant travou, falta de energia…).
-Vai só: versão do HA, versão desta integração, total de entidades e quantas
-estão indisponíveis. Nenhum estado, nome de dispositivo ou dado de consumo.
+
+Junto vai a "saúde da medição": quantos sensores usados no relatório de energia
+(Painel de Energia + opções da integração) estão respondendo e o nome dos que
+estão sem leitura — para a FV Home corrigir antes que o relatório do mês saia
+com buraco. Nenhum valor medido, nenhum consumo, nenhum outro dispositivo.
 """
 from __future__ import annotations
 
@@ -14,15 +17,27 @@ from typing import Any
 import aiohttp
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import STATE_UNAVAILABLE, __version__ as HA_VERSAO
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, __version__ as HA_VERSAO
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import CONF_TOKEN, CONF_URL, URL_PADRAO, VERSAO
+from .const import (
+    CONF_AMBIENTES, CONF_POTENCIA_CASA, CONF_TEMP_EXTERNA, CONF_TENSAO_FASES,
+    CONF_TOKEN, CONF_URL, URL_PADRAO, VERSAO,
+)
+from .montar import itens_do_painel
 
 _LOGGER = logging.getLogger(__name__)
 
 INTERVALO_STATUS = timedelta(minutes=5)
+MAX_FALHAS = 15
+
+PAPEIS = {
+    "rede_importada": "rede (consumo)", "rede_exportada": "rede (injeção)", "solar": "solar",
+    "bateria_descarga": "bateria", "bateria_carga": "bateria", "aparelho": "aparelho",
+    "tensao": "tensão", "potencia_casa": "potência da casa", "temp_externa": "temperatura externa",
+    "clima": "climatização",
+}
 
 
 def url_status(url_relatorio: str | None) -> str:
@@ -33,13 +48,48 @@ def url_status(url_relatorio: str | None) -> str:
     return base + "/status"
 
 
-def montar_status(hass: HomeAssistant) -> dict[str, Any]:
-    estados = hass.states.async_all()
+def sensores_do_relatorio(entry: ConfigEntry, painel: dict[str, Any] | None) -> list[tuple[str, str]]:
+    """(entity_id, papel) de tudo que o relatório lê. Estatísticas externas (com ':') ficam de fora."""
+    vistos: dict[str, str] = {}
+
+    def add(ent: Any, papel: str) -> None:
+        if isinstance(ent, str) and ent and ":" not in ent and ent not in vistos:
+            vistos[ent] = papel
+
+    for item in itens_do_painel(painel):
+        add(item["stat"], item["papel"])
+    op = {**entry.data, **entry.options}
+    for ent in op.get(CONF_TENSAO_FASES) or []:
+        add(ent, "tensao")
+    add(op.get(CONF_POTENCIA_CASA), "potencia_casa")
+    add(op.get(CONF_TEMP_EXTERNA), "temp_externa")
+    for amb in op.get(CONF_AMBIENTES) or []:
+        for chave in ("potencia", "temp_interna", "climate"):
+            add(amb.get(chave), "clima")
+    return list(vistos.items())
+
+
+def saude_medicao(hass: HomeAssistant, sensores: list[tuple[str, str]]) -> dict[str, Any]:
+    falhas = []
+    for ent, papel in sensores:
+        st = hass.states.get(ent)
+        if st is None or st.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+            falhas.append({"nome": (st.name if st else ent)[:120], "papel": PAPEIS.get(papel, papel),
+                           "entidade": ent[:120], "estado": st.state if st else "removido"})
+    return {"total": len(sensores), "ok": len(sensores) - len(falhas), "falhas": falhas[:MAX_FALHAS]}
+
+
+async def montar_status(hass: HomeAssistant, entry: ConfigEntry) -> dict[str, Any]:
+    painel = None
+    try:
+        from homeassistant.components.energy.data import async_get_manager
+        painel = (await async_get_manager(hass)).data
+    except Exception:  # noqa: BLE001 - sem Painel de Energia: manda só o que tiver
+        _LOGGER.debug("FV Home: não consegui ler o Painel de Energia para o status", exc_info=True)
     return {
         "ha_versao": HA_VERSAO,
         "integracao": VERSAO,
-        "entidades": len(estados),
-        "indisponiveis": sum(1 for s in estados if s.state == STATE_UNAVAILABLE),
+        "medicao": saude_medicao(hass, sensores_do_relatorio(entry, painel)),
     }
 
 
@@ -48,7 +98,7 @@ async def avisar_online(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     url = url_status(entry.data.get(CONF_URL))
     try:
         async with async_get_clientsession(hass).post(
-                url, json=montar_status(hass),
+                url, json=await montar_status(hass, entry),
                 headers={"Authorization": f"Bearer {entry.data[CONF_TOKEN]}", "Accept": "application/json"},
                 timeout=aiohttp.ClientTimeout(total=15)) as r:
             if r.status == 401:
