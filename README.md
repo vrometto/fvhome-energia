@@ -31,10 +31,11 @@ Se um sensor de tensão não grava estatísticas, a integração cria uma cópia
 * Botões **Enviar prévia do mês atual** e **Reenviar mês anterior** no dispositivo *FV Home Energia*.
 * Ação `fvhome_energia.enviar_relatorio` (`mes`, `parcial`), que devolve o resultado.
 * Sensor **Último envio** mostra se deu certo e a resposta do portal.
-* **Casa online:** a cada 5 minutos a integração avisa o portal que o Home Assistant está no ar.
-  Se o aviso parar por 15 minutos, a FV Home vê a casa como *offline* e pode agir (internet, energia, HA travado).
-  Dá para desligar em **Configurar → Opções gerais**.
+* **Casa online e saúde da medição:** a cada 5 minutos a integração avisa o portal que o Home Assistant está no ar
+  e se os sensores usados no relatório (Painel de Energia, tensão, potência, climatização) estão medindo.
+  Se o aviso parar por 15 minutos, a FV Home vê a casa como *offline*; se um sensor do relatório ficar sem leitura,
+  ela vê qual é e corrige antes que o relatório do mês saia com buraco. Dá para desligar em **Configurar → Opções gerais**.
 
 Nada sai do Home Assistant além do resumo de energia do mês e, no aviso de casa online, a versão do HA,
-a versão da integração e a contagem de entidades (total e indisponíveis) — nenhum estado, nome de dispositivo ou consumo.
+a versão da integração e o nome dos sensores do relatório que estiverem sem leitura — nenhum valor medido nem outros dispositivos.
 O token fica só nesta instalação.
