@@ -13,7 +13,7 @@ from homeassistant.helpers import selector as sel
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
-    CONF_AMBIENTES, CONF_BATERIAS, CONF_CASA, CONF_ENVIO_AUTOMATICO,
+    CONF_AMBIENTES, CONF_BATERIAS, CONF_CASA, CONF_ENVIO_AUTOMATICO, CONF_STATUS_ONLINE,
     CONF_POTENCIA_CASA, CONF_SO_CONSUMO, CONF_TEMP_EXTERNA,
     CONF_TENSAO_FASES, CONF_TENSAO_NOMINAL, CONF_TOKEN, CONF_URL, DOMAIN, URL_PADRAO,
 )
@@ -59,7 +59,7 @@ class FluxoFVHome(ConfigFlow, domain=DOMAIN):
                     return self.async_create_entry(
                         title=f"FV Home · {casa}",
                         data={CONF_TOKEN: token, CONF_URL: url, CONF_CASA: casa},
-                        options={CONF_ENVIO_AUTOMATICO: True, CONF_BATERIAS: "5,10", CONF_TENSAO_NOMINAL: "127"},
+                        options={CONF_ENVIO_AUTOMATICO: True, CONF_STATUS_ONLINE: True, CONF_BATERIAS: "5,10", CONF_TENSAO_NOMINAL: "127"},
                     )
         esquema = vol.Schema({
             vol.Required(CONF_TOKEN): sel.TextSelector(sel.TextSelectorConfig(type=sel.TextSelectorType.PASSWORD)),
@@ -116,6 +116,7 @@ class OpcoesFVHome(OptionsFlow):
         sug = lambda k: {"suggested_value": o.get(k)}  # noqa: E731
         esquema = vol.Schema({
             vol.Optional(CONF_ENVIO_AUTOMATICO, default=o.get(CONF_ENVIO_AUTOMATICO, True)): bool,
+            vol.Optional(CONF_STATUS_ONLINE, default=o.get(CONF_STATUS_ONLINE, True)): bool,
             vol.Optional(CONF_SO_CONSUMO, default=o.get(CONF_SO_CONSUMO, False)): bool,
             vol.Optional(CONF_TENSAO_NOMINAL, default=str(o.get(CONF_TENSAO_NOMINAL, "127"))): sel.SelectSelector(
                 sel.SelectSelectorConfig(options=["127", "220"], mode=sel.SelectSelectorMode.LIST)),

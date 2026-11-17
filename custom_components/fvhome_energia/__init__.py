@@ -15,11 +15,13 @@ from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse, Supp
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.event import async_track_time_change
+from homeassistant.helpers.event import async_track_time_change, async_track_time_interval
+from homeassistant.helpers.start import async_at_started
 from homeassistant.helpers.typing import ConfigType
 
 from .coletor import ErroEnvio, enviar
-from .const import CONF_ENVIO_AUTOMATICO, DOMAIN, SERVICO_ENVIAR, SINAL_ENVIO
+from .const import CONF_ENVIO_AUTOMATICO, CONF_STATUS_ONLINE, DOMAIN, SERVICO_ENVIAR, SINAL_ENVIO
+from .status import INTERVALO_STATUS, avisar_online
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [Platform.SENSOR, Platform.BUTTON]
@@ -87,6 +89,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: FVConfigEntry) -> bool:
             hass.async_create_background_task(executar(hass, entry), f"{DOMAIN}_envio_mensal")
 
     entry.async_on_unload(async_track_time_change(hass, _agendado, hour=6, minute=minuto, second=0))
+
+    # "casa online": avisa o portal a cada 5 min (o painel marca offline após 15 min sem aviso)
+    if entry.options.get(CONF_STATUS_ONLINE, True):
+        async def _status(_agora: datetime | None = None) -> None:
+            await avisar_online(hass, entry)
+
+        @callback
+        def _ao_iniciar(_hass: HomeAssistant) -> None:
+            hass.async_create_background_task(_status(), f"{DOMAIN}_status_inicial")
+
+        entry.async_on_unload(async_at_started(hass, _ao_iniciar))
+        entry.async_on_unload(async_track_time_interval(hass, _status, INTERVALO_STATUS, name=f"{DOMAIN}_status"))
     entry.async_on_unload(entry.add_update_listener(_recarregar))
     return True
 
