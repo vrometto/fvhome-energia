@@ -30,7 +30,7 @@
         "title": "O que entra no relatório",
         "description": "Energia vem do Painel de Energia. Aqui você liga as seções extras.\\n\\nAmbientes de climatização: {ambientes}",
         "menu_options": {
-          "geral": "Opções gerais (envio, tensão, bateria, temperatura externa)",
+          "geral": "Opções gerais (envio, monitoramento, tensão, bateria, temperatura externa)",
           "ambiente_novo": "Adicionar ambiente de climatização",
           "ambiente_remover": "Remover ambiente de climatização",
           "salvar": "Salvar e sair"
@@ -40,6 +40,7 @@
         "title": "Opções gerais",
         "data": {
           "envio_automatico": "Enviar automaticamente todo dia 1",
+          "status_online": "Avisar a FV Home que a casa está online (a cada 5 min)",
           "medidor_so_consumo": "O medidor da rede mede só consumo (não registra o que vai para a rede)",
           "tensao_nominal": "Tensão da casa (V)",
           "tensao_fases": "Sensores de tensão de cada fase",
@@ -49,7 +50,8 @@
         },
         "data_description": {
           "tensao_fases": "Seção Qualidade da energia (faixas da ANEEL). Se o sensor não grava estatísticas, a integração cria uma cópia que grava.",
-          "medidor_so_consumo": "Ligue se o consumo da casa é o próprio valor do medidor da rede (sem descontar exportação)."
+          "medidor_so_consumo": "Ligue se o consumo da casa é o próprio valor do medidor da rede (sem descontar exportação).",
+          "status_online": "Permite à FV Home ver se a casa ficou sem internet ou se o Home Assistant parou. Envia só versões e a contagem de entidades indisponíveis."
         }
       },
       "ambiente_novo": {

@@ -1,6 +1,6 @@
 """Constantes da integração FV Home Energia."""
 DOMAIN = "fvhome_energia"
-VERSAO = "0.2.1"
+VERSAO = "0.3.0"
 
 URL_PADRAO = "https://app.fvhome.com.br/api/relatorio"
 
@@ -15,6 +15,7 @@ CONF_AMBIENTES = "ambientes"          # climatização: [{nome, potencia, temp_i
 CONF_POTENCIA_CASA = "potencia_casa"
 CONF_BATERIAS = "baterias_kwh"
 CONF_ENVIO_AUTOMATICO = "envio_automatico"
+CONF_STATUS_ONLINE = "status_online"      # avisar o portal a cada 5 min (casa online no painel)
 
 SERVICO_ENVIAR = "enviar_relatorio"
 SINAL_ENVIO = f"{DOMAIN}_envio_{{}}"   # formatado com o entry_id
